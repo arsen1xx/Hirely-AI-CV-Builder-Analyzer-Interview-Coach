@@ -21,7 +21,6 @@ async def get_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text("⏳ <i>Готую питання як справжній Senior HR... Це займе пару секунд.</i>", parse_mode='HTML')
     
-    # Генеруємо список питань через ШІ
     questions = await generate_interview_questions(role)
     
     if not questions:
@@ -32,7 +31,6 @@ async def get_role(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['current_q_index'] = 0
     context.user_data['interview_answers'] = []
     
-    # Ставимо перше питання
     first_q = questions[0]
     keyboard = ReplyKeyboardMarkup([["🔚 Завершити інтерв'ю"]], resize_keyboard=True)
     
@@ -48,13 +46,11 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     questions = context.user_data['interview_questions']
     idx = context.user_data['current_q_index']
     
-    # Зберігаємо відповідь користувача
     context.user_data['interview_answers'].append({
         "question": questions[idx],
         "answer": answer
     })
     
-    # Переходимо до наступного питання
     idx += 1
     context.user_data['current_q_index'] = idx
     
@@ -66,7 +62,6 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return ANSWER_QUESTION
     else:
-        # Питання закінчились - генеруємо фідбек
         await update.message.reply_text(
             "🏁 <b>Інтерв'ю завершено! Дякую за твої відповіді.</b>\n\n"
             "⏳ <i>Аналізую твій виступ та готую розгорнутий фідбек...</i>", 
@@ -88,8 +83,6 @@ async def stop_interview(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=ReplyKeyboardRemove()
     )
     return ConversationHandler.END
-
-# --- AI ФУНКЦІЇ ---
 
 async def generate_interview_questions(role):
     client = get_client()
@@ -115,7 +108,6 @@ async def generate_interview_questions(role):
         text = response.choices[0].message.content.strip()
         questions = [q.strip() for q in text.split('|||') if q.strip()]
         
-        # Запасний варіант, якщо ШІ проігнорував роздільник
         if len(questions) < 2:
             questions = [q.strip() for q in text.split('\n') if q.strip() and not q.lower().startswith('ось')]
             

@@ -90,11 +90,9 @@ async def download_pdf_action(update: Update, context: ContextTypes.DEFAULT_TYPE
     prof = context.user_data.get('profile')
     sel = context.user_data.get('cv_selection', {})
     
-    # Ініціалізація PDF
     pdf = FPDF()
     pdf.add_page()
     
-    # Підключення кириличних шрифтів Inter
     try:
         pdf.add_font("Inter", "", "Inter-Regular.ttf")
         pdf.add_font("Inter", "B", "Inter-Bold.ttf")
@@ -106,26 +104,21 @@ async def download_pdf_action(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         return
 
-    # --- ШАБЛОН РЕЗЮМЕ ---
-    
-    # Заголовок (Ім'я)
     pdf.set_font("Inter", "B", 22)
     pdf.cell(0, 10, prof['name'].upper(), align='C', new_x="LMARGIN", new_y="NEXT")
     
-    # Контакти
     c = prof['contacts']
     c_list = [v for v in [c['phone'], c['email'], c['linkedin'], c['other']] if v]
     if c_list:
         pdf.set_font("Inter", "", 10)
         pdf.cell(0, 6, " | ".join(c_list), align='C', new_x="LMARGIN", new_y="NEXT")
     
-    pdf.ln(8) # Відступ
+    pdf.ln(8)
     
-    # Допоміжна функція для малювання розділів
     def add_section(title, content_list, is_text=False):
         pdf.set_font("Inter", "B", 14)
         pdf.cell(0, 8, title, new_x="LMARGIN", new_y="NEXT")
-        pdf.line(pdf.get_x(), pdf.get_y(), 200, pdf.get_y()) # Лінія під заголовком
+        pdf.line(pdf.get_x(), pdf.get_y(), 200, pdf.get_y())
         pdf.ln(3)
         
         pdf.set_font("Inter", "", 11)
@@ -136,7 +129,6 @@ async def download_pdf_action(update: Update, context: ContextTypes.DEFAULT_TYPE
                 pdf.multi_cell(0, 6, f"• {item}", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(6)
 
-    # Додаємо обрані розділи
     if sel.get('summary') and prof['summary'] != 'Не вказано':
         add_section("ПРОФІЛЬ", prof['summary'], is_text=True)
         
@@ -157,13 +149,11 @@ async def download_pdf_action(update: Update, context: ContextTypes.DEFAULT_TYPE
             if c_items:
                 add_section(c_name.upper(), c_items)
 
-    # Зберігаємо PDF у віртуальний буфер
     pdf_bytes = pdf.output()
     file_buffer = io.BytesIO(pdf_bytes)
     file_buffer.name = f"CV_{prof['name'].replace(' ', '_')}.pdf"
     
-    # Відправляємо файл у Telegram
     await query.message.reply_document(
         document=file_buffer,
         caption="📄 Твоє професійне резюме готове! Успіхів з відгуками на вакансії! 🚀"
-    )
+    ),

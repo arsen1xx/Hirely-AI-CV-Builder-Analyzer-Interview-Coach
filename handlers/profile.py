@@ -81,7 +81,6 @@ async def show_contacts_menu(update: Update, context: ContextTypes.DEFAULT_TYPE)
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    # ВИПРАВЛЕНО БАГ: Тепер перевіряємо, звідки прийшов запит (від кнопки чи від тексту)
     if update.callback_query:
         await update.callback_query.edit_message_text(text, reply_markup=reply_markup, parse_mode='HTML')
     else:
@@ -106,7 +105,6 @@ async def profile_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "prof_back":
         field = context.user_data.get('editing_field', '')
-        # Очищаємо тимчасові дані, якщо скасували посеред процесу
         if 'temp_item' in context.user_data:
             del context.user_data['temp_item']
             
@@ -124,7 +122,7 @@ async def profile_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         prompt = f"Введи новий запис для розділу <b>{c_name}</b>:"
     else:
         context.user_data['editing_field'] = data
-        context.user_data['temp_item'] = {} # Створюємо пустий словник для покрокових збірок
+        context.user_data['temp_item'] = {}
         
         prompts = {
             "prof_edit_name": "Введи своє прізвище та Ім'я:",
@@ -135,7 +133,6 @@ async def profile_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "prof_edit_summary": "Напиши короткий опис про себе:",
             "prof_edit_skills": "Введи свої навички через кому:",
             "prof_create_custom": "Введи НАЗВУ нового розділу (наприклад, 'Курси' або 'Мови'):",
-            # Покрокові старти
             "prof_add_proj_name": "Введи <b>Назву проєкту</b>:",
             "prof_add_exp_title": "Введи <b>Посаду</b> (напр. UI/UX Designer):",
             "prof_add_edu_uni": "Введи <b>Назву Університету або Курсів</b>:"
@@ -151,28 +148,22 @@ async def handle_profile_input(update: Update, context: ContextTypes.DEFAULT_TYP
     field = context.user_data.get('editing_field')
     prof = context.user_data['profile']
     
-    # -- ПРОСТІ ПОЛЯ --
     if field == "prof_edit_name": prof['name'] = text
     elif field == "prof_edit_summary": prof['summary'] = text
     elif field == "prof_edit_skills": prof['skills'] = text
     
-    # -- КОНТАКТИ --
     elif field in ["prof_edit_phone", "prof_edit_email", "prof_edit_linkedin", "prof_edit_other"]:
         key = field.split("_")[-1]
         prof['contacts'][key] = text
         await show_contacts_menu(update, context)
         return PROF_DASHBOARD
         
-    # -- КАСТОМНІ РОЗДІЛИ --
     elif field == "prof_create_custom":
         if text not in prof['custom']: prof['custom'][text] = []
     elif field == "prof_add_custitem":
         c_name = context.user_data['editing_custom_name']
         prof['custom'][c_name].append(text)
 
-    # ==========================================
-    # -- ПОКРОКОВИЙ МАЙСТЕР ПРОЄКТІВ --
-    # ==========================================
     elif field == "prof_add_proj_name":
         context.user_data['temp_item']['name'] = text
         context.user_data['editing_field'] = "prof_add_proj_desc"
@@ -188,9 +179,6 @@ async def handle_profile_input(update: Update, context: ContextTypes.DEFAULT_TYP
         formatted_proj = f"{t['name']} — {t['desc']}. Стек: {text}"
         prof['projects'].append(formatted_proj)
 
-    # ==========================================
-    # -- ПОКРОКОВИЙ МАЙСТЕР ДОСВІДУ --
-    # ==========================================
     elif field == "prof_add_exp_title":
         context.user_data['temp_item']['title'] = text
         context.user_data['editing_field'] = "prof_add_exp_company"
@@ -211,9 +199,6 @@ async def handle_profile_input(update: Update, context: ContextTypes.DEFAULT_TYP
         formatted_exp = f"{t['title']} в {t['company']} ({t['years']}) — {text}"
         prof['experience'].append(formatted_exp)
 
-    # ==========================================
-    # -- ПОКРОКОВИЙ МАЙСТЕР ОСВІТИ --
-    # ==========================================
     elif field == "prof_add_edu_uni":
         context.user_data['temp_item']['uni'] = text
         context.user_data['editing_field'] = "prof_add_edu_spec"
@@ -229,7 +214,6 @@ async def handle_profile_input(update: Update, context: ContextTypes.DEFAULT_TYP
         formatted_edu = f"{t['uni']}, {t['spec']} ({text})"
         prof['education'].append(formatted_edu)
 
-    # Після успішного завершення збірки очищаємо тимчасові дані
     if 'temp_item' in context.user_data:
         del context.user_data['temp_item']
     

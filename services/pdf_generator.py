@@ -28,7 +28,6 @@ def generate_cv_pdf(cv_data: dict) -> bytes:
     )
     story = []
     
-    # 🎨 Оновлені стилі (виправлені накладання, додані правильні кольори та відступи)
     style_name = ParagraphStyle(
         'Name', fontName=FONT_BOLD, fontSize=28, leading=34, spaceAfter=2*mm, textColor=HexColor("#111111")
     )
@@ -51,31 +50,25 @@ def generate_cv_pdf(cv_data: dict) -> bytes:
         'Dates', fontName=FONT_NAME, fontSize=10, leading=14, textColor=HexColor("#777777"), spaceAfter=2*mm
     )
     
-    # 1. Шапка (Ім'я та Посада)
     story.append(Paragraph(cv_data.get('full_name', 'Ім\'я Прізвище'), style_name))
     story.append(Paragraph(cv_data.get('position', 'Посада'), style_position))
     
-    # Контакти (збираємо до купи тільки те, що є)
     city = cv_data.get('city', '')
     phone = cv_data.get('phone', '')
     email = cv_data.get('email', '')
     contacts = " | ".join(filter(None, [city, phone, email]))
     story.append(Paragraph(contacts, style_contact))
     
-    # Тонка сіра лінія-розділювач для естетики
     story.append(Spacer(1, 4*mm))
     story.append(HRFlowable(width="100%", thickness=1, color=HexColor("#E5E5E5"), spaceAfter=6*mm))
     
-    # 2. Про себе (Summary)
     raw_summary = cv_data.get('summary', '')
-    # Відрізаємо системне повідомлення про помилку API, якщо воно туди потрапило
     clean_summary = raw_summary.split("Твій оригінальний текст:\n")[-1].strip()
     
     if clean_summary:
         story.append(Paragraph("Про себе", style_heading))
         story.append(Paragraph(clean_summary, style_body))
     
-    # 3. Досвід роботи
     if cv_data.get('experience'):
         story.append(Paragraph("Досвід роботи", style_heading))
         for exp in cv_data['experience']:
@@ -87,7 +80,6 @@ def generate_cv_pdf(cv_data: dict) -> bytes:
                 story.append(Paragraph(exp.get('description', ''), style_body))
             story.append(Spacer(1, 4*mm))
 
-    # 4. Освіта
     if cv_data.get('education'):
         story.append(Paragraph("Освіта", style_heading))
         for edu in cv_data['education']:
@@ -97,7 +89,6 @@ def generate_cv_pdf(cv_data: dict) -> bytes:
                 story.append(Paragraph(edu.get('years', ''), style_dates))
             story.append(Spacer(1, 4*mm))
 
-    # 5. Навички
     if cv_data.get('skills'):
         story.append(Paragraph("Навички", style_heading))
         story.append(Paragraph(cv_data.get('skills', ''), style_body))

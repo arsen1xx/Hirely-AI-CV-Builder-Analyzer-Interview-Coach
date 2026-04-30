@@ -37,7 +37,6 @@ def generate_cv_summary(draft_text: str, position: str) -> str:
 
 def analyze_cv_text(text: str) -> str:
     client = get_client()
-    # Промпт, який не дає ШІ розслабитися
     prompt = f"""
     Ти — Senior Product Designer. Тобі дали текст резюме для жорсткого та швидкого рев'ю.
     
@@ -55,9 +54,8 @@ def analyze_cv_text(text: str) -> str:
     try:
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            # Це найрозумніша модель в Groq на даний момент
             model="llama-3.3-70b-versatile",
-            temperature=0.3 # Низька температура = менше фантазій і більше діла
+            temperature=0.3
         )
         return chat_completion.choices[0].message.content.strip()
     except Exception as e:

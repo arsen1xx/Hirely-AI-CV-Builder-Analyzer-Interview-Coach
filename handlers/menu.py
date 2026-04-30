@@ -2,8 +2,6 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Головне меню бота з ціпляючим текстом"""
-    # ВИДАЛЕНО: context.user_data.clear() - тепер дані не зникають!
     
     keyboard = [
         [InlineKeyboardButton("📝 Створити CV з нуля", callback_data="menu_build_cv")],
@@ -13,7 +11,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    # Текст, що чіпляє (hook-текст)
     text = (
         "🚀 <b>Hirely: Твій кар'єрний помічник</b>\n\n"
         "Привіт! Я - твій персональний кар'єрний копілот. "

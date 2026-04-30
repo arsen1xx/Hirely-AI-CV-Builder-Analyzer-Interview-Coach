@@ -6,7 +6,6 @@ from telegram.ext import (
     Application, CommandHandler, MessageHandler, CallbackQueryHandler, ConversationHandler, filters
 )
 
-# Завантаження .env
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 
@@ -14,7 +13,6 @@ if not TOKEN:
     print("❌ ПОМИЛКА: TELEGRAM_TOKEN не знайдено!")
     sys.exit(1)
 
-# Імпорт хендлерів
 try:
     from handlers.menu import start_command
     from handlers.analyze import handle_pdf_analysis, request_pdf
@@ -36,7 +34,6 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 def main():
     application = Application.builder().token(TOKEN).build()
 
-    # 1. Сценарій ПРОФІЛЮ (Налаштування)
     profile_handler = ConversationHandler(
         entry_points=[CallbackQueryHandler(start_profile, pattern="^menu_settings$")],
         states={
@@ -48,10 +45,9 @@ def main():
         },
         fallbacks=[CommandHandler("start", start_command)],
         allow_reentry=True,
-        per_message=False # Додаємо, щоб прибрати попередження
+        per_message=False
     )
 
-    # 2. Сценарій ГЕНЕРАЦІЇ CV (Вибір розділів)
     gen_cv_handler = ConversationHandler(
         entry_points=[CallbackQueryHandler(start_cv_generation, pattern="^menu_build_cv$")],
         states={
@@ -66,7 +62,6 @@ def main():
         per_message=False
     )
 
-    # 3. Сценарій MOCK INTERVIEW
     interview_handler = ConversationHandler(
         entry_points=[
             CallbackQueryHandler(start_interview, pattern="^menu_mock_interview$"),
@@ -83,19 +78,14 @@ def main():
         allow_reentry=True,
         per_message=False
     )
-
-    # --- РЕЄСТРАЦІЯ У ПРАВИЛЬНОМУ ПОРЯДКУ ---
     
-    # Спочатку команди
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("analyze", request_pdf))
     
-    # Потім складні сценарії (ConversationHandlers)
     application.add_handler(profile_handler)
     application.add_handler(gen_cv_handler)
     application.add_handler(interview_handler)
 
-    # Потім поодинокі Callback-и та повідомлення
     application.add_handler(CallbackQueryHandler(request_pdf, pattern="^menu_analyze_cv$"))
     application.add_handler(CallbackQueryHandler(download_pdf_action, pattern="^download_pdf$"))
     application.add_handler(MessageHandler(filters.Document.PDF, handle_pdf_analysis))

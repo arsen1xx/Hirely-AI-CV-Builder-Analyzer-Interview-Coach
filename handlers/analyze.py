@@ -1,7 +1,7 @@
 import io
 from telegram import Update
 from telegram.ext import ContextTypes
-import PyPDF2  # Переконайся, що ця бібліотека встановлена (pip install PyPDF2)
+import PyPDF2
 from services.gemini_api import get_client
 
 async def request_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -19,12 +19,10 @@ async def request_pdf(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_pdf_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = await update.message.reply_text("⏳ <i>Сканую твій PDF... Шукаю червоні прапорці 🚩</i>", parse_mode='HTML')
     
-    # Завантажуємо файл
     file = await update.message.document.get_file()
     downloaded_file = await file.download_as_bytearray()
     
     try:
-        # Читаємо текст з PDF
         reader = PyPDF2.PdfReader(io.BytesIO(downloaded_file))
         cv_text = ""
         for page in reader.pages:
@@ -34,7 +32,6 @@ async def handle_pdf_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE
             await message.edit_text("❌ <b>Помилка:</b> Не вдалося прочитати текст з PDF. Можливо, це відсканована картинка?", parse_mode='HTML')
             return
             
-        # Відправляємо текст до ШІ з НОВИМ промптом
         feedback = await analyze_cv_with_ai(cv_text)
         
         await message.edit_text(feedback, parse_mode='HTML')
@@ -45,7 +42,6 @@ async def handle_pdf_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def analyze_cv_with_ai(text):
     client = get_client()
     
-    # Жорсткий промпт для ШІ
     prompt = f"""Ти — суворий Tech Recruiter та ATS-система (Applicant Tracking System).
     Твоє завдання — жорстко, але конструктивно оцінити резюме кандидата.
     
@@ -74,9 +70,9 @@ async def analyze_cv_with_ai(text):
     
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile", # Або інша модель, яку ти використовуєш
+            model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.3 # Низька температура, щоб він не фантазував і був суворим
+            temperature=0.3
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
